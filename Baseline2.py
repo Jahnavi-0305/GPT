@@ -37,16 +37,19 @@ class BigramLanguageModel(nn.Module):
     def __init__(self, vocab_size):
         super().__init__()
         # Each token directly reads off the logits for the next token from a lookup table
-        self.token_embedding_table = nn.Embedding(vocab_size, vocab_size)
+        self.token_embedding_table = nn.Embedding(vocab_size, vocab_size)  #1 --> creating values for vocab
 
     def forward(self, idx, targets=None):
         # idx and targets are both (B, T) tensor of integers
-        logits = self.token_embedding_table(idx)  # (B, T, C)
+        logits = self.token_embedding_table(idx)  # (B, T, C)   # 2 --> Collecting logits of each token in vocab
         if targets is None:
             loss = None
         else:
-            B, T, C = logits.shape
-            logits = (B*T, C)
+            B, T, C = logits.shape     
+            # if vocab = "hello" and logits contains values of 'h' then B = 1 (just one sequence: "hello") 
+            # T = 5 (five characters: h, e, l, l, o) 
+            # C = 5 (vocab size is 5)
+            logits = (B*T, C)      #Because cross_entropy cannot compute the loss over 3D inputs—it needs a flat list of predictions for each token.
             targets = (B*T)
             loss = F.cross_entropy(logits, targets)
         return logits, loss
@@ -91,7 +94,7 @@ for iter in range(max_iters):
     if iter % eval_interval == 0 or iter == max_iters - 1:
         
         ## YOUR SOLUTION HERE ##
-        losses =estimate_loss()
+        losses = estimate_loss()
         print(f"step {iter}: train loss {losses['train']:.4f}, val loss {losses['val']:.4f}")
     
     # Evaluate the loss
